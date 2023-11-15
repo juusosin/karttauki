@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet Map Example</title>
+
+    <!-- Liitä Leaflet CSS-tiedosto -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <!-- Määritä karttaan liittyvät tyylit. Voit käyttää tätä tai määrittää omat tyylit. -->
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+        }
+
+        #map {
+            height: 80vh; /* Kartan korkeus vie 80% näytöstä */
+            width: 100%;   /* Koko näytön leveys */
+        }
+
+        #route-form {
+            padding: 10px;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Luo div-elementti, johon kartta upotetaan. -->
+    <div id="map"></div>
+
+    <!-- Luo lomake, jolla käyttäjä voi etsiä reitin. -->
+    <div id="route-form">
+        <button onclick="findRoute()">Etsi reitti Uudenkaupungin torille</button>
+    </div>
+
+    <!-- Liitä Leaflet ja OpenStreetMap JavaScript-tiedostot -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- Määritä kartan luonti -->
+    <script>
+        var map = L.map('map').setView([60.7960, 21.4133], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Lisää mahdollisuus käyttää käyttäjän sijaintia (vaatii HTTPS)
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    var userLocation = [position.coords.latitude, position.coords.longitude];
+                    L.marker(userLocation).addTo(map).bindPopup('Olet täällä!').openPopup();
+                },
+                function (error) {
+                    console.error('Virhe käyttäjän sijainnin hakemisessa:', error.message);
+                }
+            );
+        } else {
+            console.error('Geolocation ei ole käytettävissä tässä selaimessa.');
+        }
+
+        // Käytä hiiren klikkausta lähtöpaikan asettamiseen
+        var startMarker;
+
+        map.on('click', function(e) {
+            if (startMarker) {
+                map.removeLayer(startMarker);
+            }
+            startMarker = L.marker(e.latlng).addTo(map).bindPopup('Lähtöpaikka').openPopup();
+        });
+
+        // Määritä reitinhakufunktio
+        function findRoute() {
+            if (!startMarker) {
+                alert('Aseta lähtöpaikka klikkaamalla kartalla.');
+                return;
+            }
+
+            var startLocation = startMarker.getLatLng();
+            var mapboxApiKey = 'YOUR_MAPBOX_API_KEY';
+            var directionsURL = `https://api.mapbox.com/directions/v5/mapbox/driving/${startLocation.lng},${startLocation.lat};${60.7960},${21.4133}?geometries=geojson&access_token=${mapboxApiKey}`;
+
+            fetch(directionsURL)
+                .then(response => response.json())
+                .then(data => {
+                    var routeCoordinates = data.routes[0].geometry.coordinates;
+                    var route = L.polyline(routeCoordinates, { color: 'blue' }).addTo(map);
+                    map.fitBounds(route.getBounds());
+                })
+                .catch(error => console.error('Virhe reitin hakemisessa:', error));
+        }
+    </script>
+
+</body>
+</html>

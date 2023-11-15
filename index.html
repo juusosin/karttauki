@@ -79,7 +79,7 @@
             }
 
             var startLocation = startMarker.getLatLng();
-            var mapboxApiKey = 'YOUR_MAPBOX_API_KEY';
+            var mapboxApiKey = 'pk.eyJ1IjoianV1c29zaW4iLCJhIjoiY2xvems1eGpvMDFxbDJxczZ5d3JtM2I0NCJ9.HEaWB9Il89JInUowIRLBRg';
             var directionsURL = `https://api.mapbox.com/directions/v5/mapbox/driving/${startLocation.lng},${startLocation.lat};${60.7960},${21.4133}?geometries=geojson&access_token=${mapboxApiKey}`;
 
             fetch(directionsURL)
